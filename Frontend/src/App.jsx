@@ -63,7 +63,7 @@ function App() {
     const token = localStorage.getItem("token")
     fetch("http://localhost:5001/messages", {
       headers: {
-        authorization: token
+        Authorization: `Bearer ${token}`
       }
     })
       .then(res => res.json())
@@ -87,7 +87,7 @@ function App() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        authorization: token
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         text: message,

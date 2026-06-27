@@ -1,3 +1,7 @@
+require("dotenv").config()
+
+const CLIENT_URL = process.env.CLIENT_URL
+
 const express = require("express")
 const cors = require("cors")
 const http = require("http")
@@ -15,7 +19,10 @@ const app = express()
 
 connectDB()
 
-app.use(cors())
+app.use(cors({
+  origin: CLIENT_URL
+}))
+
 app.use(express.json())
 
 app.use("/users", userRoutes)
@@ -30,7 +37,7 @@ const server = http.createServer(app)
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173"
+    origin: CLIENT_URL
   }
 })
 

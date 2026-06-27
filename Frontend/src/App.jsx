@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { io } from "socket.io-client"
 
-const socket = io("http://localhost:5001")
+const API = import.meta.env.VITE_API_URL
+
+const socket = io(API)
 
 function App() {
 
@@ -15,7 +17,7 @@ function App() {
 
   const register = () => {
 
-    fetch("http://localhost:5001/auth/register", {
+    fetch(`${API}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -36,7 +38,7 @@ function App() {
 
   const login = () => {
 
-    fetch("http://localhost:5001/auth/login", {
+    fetch(`${API}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -59,15 +61,27 @@ function App() {
   }
 
   useEffect(() => {
-
     const token = localStorage.getItem("token")
-    fetch("http://localhost:5001/messages", {
+  
+    if (!token) {
+      setMessages([])
+      return
+    }
+  
+    fetch(`${API}/messages`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
       .then(res => res.json())
-      .then(data => setMessages(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setMessages(data)
+        } else {
+          setMessages([])
+          console.log(data.message)
+        }
+      })
   }, [])
 
   useEffect(() => {
@@ -83,7 +97,7 @@ function App() {
   const sendMessage = () => {
     const token = localStorage.getItem("token")
 
-    fetch("http://localhost:5001/messages", {
+    fetch(`${API}/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +118,7 @@ function App() {
   }
 
   const fetchUsers = () => {
-    fetch("http://localhost:5001/users")
+    fetch(`${API}/users`)
       .then(res => res.json())
       .then(data => setUsers(data))
   }
@@ -115,7 +129,7 @@ function App() {
 
 
   const deleteUser = (id) => {
-    fetch(`http://localhost:5001/users/${id}`, {
+    fetch(`${API}/users/${id}`, {
       method: "DELETE"
     }).then(() => {
       fetchUsers()
@@ -158,12 +172,12 @@ function App() {
       <h1>Chat</h1>
 
       <div>
-        {messages.map((msg, index) => (
-        <p key={index}>
-          <strong>{msg.username}: </strong>
-          {msg.text}
-        </p>
-        ))}
+          {Array.isArray(messages) && messages.map((msg, index) => (
+            <p key={index}>
+              <strong>{msg.username}: </strong>
+              {msg.text}
+            </p>
+          ))}
       </div>
 
       <input

@@ -11,6 +11,8 @@ function App() {
   
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+
+  const [currentUser, setCurrentUser] = useState(null)
   
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState([])
@@ -52,13 +54,33 @@ function App() {
     .then(data => {
   
       console.log(data)
-  
-      localStorage.setItem("token", data.token)
-      setPassword("")
+
+      if (data.token) {
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("username", username)
+        setCurrentUser(username)
+        setPassword("")
+      }
   
     })
   
   }
+
+  const logout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("username")
+  
+    setCurrentUser(null)
+    setMessages([])
+  }
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("username")
+  
+    if (savedUsername) {
+      setCurrentUser(savedUsername)
+    }
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -105,7 +127,7 @@ function App() {
       },
       body: JSON.stringify({
         text: message,
-        username: username
+        username: currentUser
       })
     })
       .then(res => res.json())
@@ -159,6 +181,15 @@ function App() {
       <button onClick={login}>
         Login
       </button>
+
+      {currentUser ? (
+        <div>
+          <h2>Logged in as: {currentUser}</h2>
+          <button onClick={logout}>Logout</button>
+        </div>
+        ) : (
+          <h2>Not logged in</h2>
+        )}
       
       <h1>Users</h1>
 
@@ -169,26 +200,31 @@ function App() {
         </div>
       ))}
 
-      <h1>Chat</h1>
+      {currentUser && (
+      <>
+        <h1>Chat</h1>
 
-      <div>
-          {Array.isArray(messages) && messages.map((msg, index) => (
-            <p key={index}>
-              <strong>{msg.username}: </strong>
-              {msg.text}
-            </p>
-          ))}
-      </div>
+        <div>
+            {Array.isArray(messages) && messages.map((msg, index) => (
+              <p key={index}>
+                <strong>{msg.username}: </strong>
+                {msg.text}
+              </p>
+            ))}
+        </div>
 
-      <input
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Enter message"
-      />
-      
-      <button onClick={sendMessage}>
-        Send
-      </button>
+        <input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Enter message"
+        />
+        
+        <button onClick={sendMessage}>
+          Send
+        </button>
+      </>
+    )}
+
     </div>
 
   )

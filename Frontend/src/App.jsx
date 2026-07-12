@@ -17,6 +17,8 @@ function App() {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState([])
 
+  const [room, setRoom] = useState("General")
+
   const register = () => {
 
     fetch(`${API}/auth/register`, {
@@ -85,26 +87,34 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token")
   
+    setMessages([])
+  
     if (!token) {
-      setMessages([])
       return
     }
   
-    fetch(`${API}/messages`, {
+    fetch(`${API}/messages/${room}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-      .then(res => res.json())
-      .then(data => {
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load ${room}: ${res.status}`)
+        }
+  
+        return res.json()
+      })
+      .then((data) => {
         if (Array.isArray(data)) {
           setMessages(data)
-        } else {
-          setMessages([])
-          console.log(data.message)
         }
       })
-  }, [])
+      .catch((error) => {
+        console.error(error)
+        setMessages([])
+      })
+  }, [room])
 
   useEffect(() => {
     socket.on("receive_message", (data) => {
@@ -116,27 +126,26 @@ function App() {
     }
   }, [])
 
-  const sendMessage = () => {
-    const token = localStorage.getItem("token")
+  useEffect(() => {
+    socket.emit("join_room", room)
+  
+    return () => {
+      socket.emit("leave_room", room)
+    }
+  }, [room])
 
-    fetch(`${API}/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        text: message,
-        username: currentUser
-      })
+  const sendMessage = () => {
+    if (!message.trim()) {
+      return
+    }
+  
+    socket.emit("send_message", {
+      text: message,
+      username: currentUser,
+      room
     })
-      .then(res => res.json())
-      .then(data => {
   
-        setMessages((prev) => [...prev, data])
-  
-        setMessage("")
-      })
+    setMessage("")
   }
 
   const fetchUsers = () => {
@@ -199,6 +208,28 @@ function App() {
           <button onClick={() => deleteUser(user._id)}>Delete</button>
         </div>
       ))}
+
+      <div>
+        <button onClick={() => setRoom("General")}>
+          General
+        </button>
+
+        <button onClick={() => setRoom("School")}>
+          School
+        </button>
+
+        <button onClick={() => setRoom("Career")}>
+          Career
+        </button>
+
+        <button onClick={() => setRoom("Gaming")}>
+          Gaming
+        </button>
+
+        <button onClick={() => setRoom("Random")}>
+          Random
+        </button>
+      </div>
 
       {currentUser && (
       <>

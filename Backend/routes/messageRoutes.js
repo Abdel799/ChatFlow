@@ -4,7 +4,7 @@ const authMiddleware = require("../middleware/authMiddleware")
 
 const { getMessages, createMessage } = require("../controllers/messageController")
 
-router.get("/", authMiddleware, getMessages)
+router.get("/:room", authMiddleware, getMessages)
 router.post("/", authMiddleware, createMessage)
 
 module.exports = router

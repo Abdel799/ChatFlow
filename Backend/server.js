@@ -44,15 +44,26 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id)
 
+  socket.on("join_room", (room) => {
+    socket.join(room)
+    console.log(`${socket.id} joined ${room}`)
+  })
+
+  socket.on("leave_room", (room) => {
+    socket.leave(room)
+    console.log(`${socket.id} left ${room}`)
+  })
+
   socket.on("send_message", async (data) => {
-    
     const newMessage = new Message({
-      text: data.text
+      text: data.text,
+      username: data.username,
+      room: data.room
     })
 
     await newMessage.save()
-    
-    io.emit("receive_message", newMessage)
+
+    io.to(data.room).emit("receive_message", newMessage)
   })
 
   socket.on("disconnect", () => {

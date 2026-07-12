@@ -15,12 +15,17 @@ const userRoutes = require("./routes/userRoutes")
 const authRoutes = require("./routes/authRoutes")
 const messageRoutes = require("./routes/messageRoutes")
 
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.LOCAL_CLIENT_URL
+]
+
 const app = express()
 
 connectDB()
 
 app.use(cors({
-  origin: CLIENT_URL
+  origin: allowedOrigins
 }))
 
 app.use(express.json())
@@ -37,7 +42,7 @@ const server = http.createServer(app)
 
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL
+    origin: allowedOrigins
   }
 })
 

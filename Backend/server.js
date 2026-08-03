@@ -22,6 +22,8 @@ const allowedOrigins = [
 
 const app = express()
 
+const onlineUsers = {}
+
 connectDB()
 
 app.use(cors({
@@ -49,6 +51,13 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id)
 
+  socket.on("user_online", (username) => {
+    console.log("Received user_online:", username)
+    onlineUsers[socket.id] = username
+    console.log("Current online users:", onlineUsers)
+    io.emit("online_users", Object.values(onlineUsers))
+  })
+
   socket.on("join_room", (room) => {
     socket.join(room)
     console.log(`${socket.id} joined ${room}`)
@@ -73,6 +82,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected")
+
+    delete onlineUsers[socket.id]
+    io.emit("online_users", Object.values(onlineUsers))
   })
 })
 

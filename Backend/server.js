@@ -86,6 +86,18 @@ io.on("connection", (socket) => {
     delete onlineUsers[socket.id]
     io.emit("online_users", Object.values(onlineUsers))
   })
+
+  socket.on("typing", (data) => {
+    console.log("SERVER RECEIVED TYPING:", data)
+  
+    socket.to(data.room).emit("typing", data)
+  })
+  
+  socket.on("stop_typing", (data) => {
+    console.log("SERVER RECEIVED STOP TYPING:", data)
+  
+    socket.to(data.room).emit("stop_typing", data)
+  })
 })
 
 server.listen(5001, () => {

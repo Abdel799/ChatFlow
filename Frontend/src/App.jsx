@@ -237,6 +237,7 @@ function App() {
 
   useEffect(() => {
     socket.on("typing", (data) => {
+      console.log("RECEIVED TYPING:", data)
       setTypingUsers((prev) => {
         if (prev.includes(data.username)) {
           return prev
@@ -247,6 +248,7 @@ function App() {
     })
     
     socket.on("stop_typing", (data) => {
+      console.log("RECEIVED STOP TYPING:", data)
       setTypingUsers((prev) => {
         return prev.filter((user) => user !== data.username)
       })
@@ -269,6 +271,8 @@ function App() {
 
   const handleTyping = (e) => {
     setMessage(e.target.value)
+
+    console.log("EMITTING TYPING:", currentUser, room)
 
     socket.emit("typing", {
       username: currentUser,
@@ -329,8 +333,6 @@ function App() {
       </div>
     )
   }
-
-  console.log("typingUsers:", typingUsers)
 
   return (
     <div className="min-h-screen bg-slate-100">

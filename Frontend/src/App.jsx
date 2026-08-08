@@ -21,7 +21,10 @@ function App() {
 
   const [onlineUsers, setOnlineUsers] = useState([])
 
+  const [typingUsers, setTypingUsers] = useState([])
+
   const messagesEndRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
 
   const register = () => {
 
@@ -232,6 +235,29 @@ function App() {
     fetchUsers();
   }, [])
 
+  useEffect(() => {
+    socket.on("typing", (data) => {
+      setTypingUsers((prev) => {
+        if (prev.includes(data.username)) {
+          return prev
+        }
+  
+        return [...prev, data.username]
+      })
+    })
+    
+    socket.on("stop_typing", (data) => {
+      setTypingUsers((prev) => {
+        return prev.filter((user) => user !== data.username)
+      })
+    })
+  
+    return () => {
+      socket.off("typing")
+      socket.off("stop_typing")
+    }
+  }, [])
+
 
   const deleteUser = (id) => {
     fetch(`${API}/users/${id}`, {
@@ -239,6 +265,24 @@ function App() {
     }).then(() => {
       fetchUsers()
     })
+  }
+
+  const handleTyping = (e) => {
+    setMessage(e.target.value)
+
+    socket.emit("typing", {
+      username: currentUser,
+      room
+    })
+
+    clearTimeout(typingTimeoutRef.current)
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop_typing", {
+        username: currentUser,
+        room
+      })
+    }, 2000)
   }
 
   if (!currentUser) {
@@ -285,6 +329,8 @@ function App() {
       </div>
     )
   }
+
+  console.log("typingUsers:", typingUsers)
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -419,14 +465,24 @@ function App() {
             )}
             <div ref={messagesEndRef}></div>
           </section>
-  
+          
+          {typingUsers.length > 0 && (
+            <p className="mb-2 text-sm italic text-slate-500">
+              {typingUsers.length === 1
+              ? `${typingUsers[0]} is typing...`
+              : typingUsers.length === 2
+              ? `${typingUsers[0]} and ${typingUsers[1]} are typing...`
+              : "Several people are typing..."}
+            </p>
+          )}
+
           {/* Message input */}
           {currentUser && (
             <div className="border-t border-slate-200 p-4">
               <div className="flex gap-3">
                 <input
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={handleTyping}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       sendMessage()

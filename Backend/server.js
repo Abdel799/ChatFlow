@@ -24,6 +24,11 @@ const app = express()
 
 const onlineUsers = {}
 
+const broadcastOnlineUsers = () => {
+  const uniqueUsers = [...new Set(Object.values(onlineUsers))]
+  io.emit("online_users", uniqueUsers)
+}
+
 connectDB()
 
 app.use(cors({
@@ -55,7 +60,7 @@ io.on("connection", (socket) => {
     {/*console.log("Received user_online:", username)*/}
     onlineUsers[socket.id] = username
     {/*console.log("Current online users:", onlineUsers)*/}
-    io.emit("online_users", Object.values(onlineUsers))
+    broadcastOnlineUsers()
   })
 
   socket.on("join_room", (room) => {
@@ -84,7 +89,7 @@ io.on("connection", (socket) => {
     console.log("User disconnected")
 
     delete onlineUsers[socket.id]
-    io.emit("online_users", Object.values(onlineUsers))
+    broadcastOnlineUsers()
   })
 
   socket.on("typing", (data) => {

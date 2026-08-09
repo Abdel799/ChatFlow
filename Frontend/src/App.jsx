@@ -124,6 +124,7 @@ function App() {
   }
 
   const logout = () => {
+    socket.emit("user_offline")
     localStorage.removeItem("token")
     localStorage.removeItem("username")
   

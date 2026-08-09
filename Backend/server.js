@@ -63,6 +63,11 @@ io.on("connection", (socket) => {
     broadcastOnlineUsers()
   })
 
+  socket.on("user_offline", () => {
+    delete onlineUsers[socket.id]
+    broadcastOnlineUsers()
+  })
+
   socket.on("join_room", (room) => {
     socket.join(room)
     console.log(`${socket.id} joined ${room}`)

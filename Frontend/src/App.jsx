@@ -29,26 +29,36 @@ function App() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 
   const [authError, setAuthError] = useState("")
+  const [authSuccess, setAuthSuccess] = useState("")
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
-  const register = () => {
+  const register = async () => {
 
-    fetch(`${API}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username,
-        password
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
       })
-    })
-    .then(res => res.json())
-    .then(data => {
+      
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message)
+      }
+    
       console.log(data)
+      setAuthSuccess("Registered successfully, proceed to login.")
       setUsername("")
       setPassword("")
-    })
+    } catch{
+      setAuthError(error.message)
+    }
 
   }
 
@@ -58,7 +68,7 @@ function App() {
     setIsLoggingIn(true)
     
     try {
-      const res = fetch(`${API}/auth/login`, {
+      const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -72,7 +82,7 @@ function App() {
       const data = await res.json()
       console.log(data)
 
-      if (!res) {
+      if (!res.ok) {
         throw new Error(data.message)
       }
 
@@ -345,6 +355,12 @@ function App() {
           {authError && (
             <p className="text-sm text-red-500">
               {authError}
+            </p>
+          )}
+
+          {authSuccess && (
+            <p className="mb-3 text-sm text-green-600">
+              {authSuccess}
             </p>
           )}
   

@@ -22,11 +22,11 @@ exports.login = async (req, res) => {
 
   const user = await User.findOne({ username })
 
-  if (!user) return res.status(400).json({ message: "User not found" })
+  if (!user) return res.status(400).json({ message: "User not registered" })
 
   const isMatch = await bcrypt.compare(password, user.password)
 
-  if (!isMatch) return res.status(400).json({ message: "Invalid password" })
+  if (!isMatch) return res.status(400).json({ message: "Incorrect password" })
 
   const token = jwt.sign(
     { id: user._id, username: user.username },

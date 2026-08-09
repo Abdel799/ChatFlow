@@ -26,6 +26,11 @@ function App() {
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
 
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+
+  const [authError, setAuthError] = useState("")
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+
   const register = () => {
 
     fetch(`${API}/auth/register`, {
@@ -47,22 +52,29 @@ function App() {
 
   }
 
-  const login = () => {
+  const login = async () => {
 
-    fetch(`${API}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username,
-        password
+    setAuthError("")
+    setIsLoggingIn(true)
+    
+    try {
+      const res = fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-  
+    
+      const data = await res.json()
       console.log(data)
+
+      if (!res) {
+        throw new Error(data.message)
+      }
 
       if (data.token) {
         localStorage.setItem("token", data.token)
@@ -71,8 +83,12 @@ function App() {
         setPassword("")
       }
   
-    })
-  
+    } catch (error) {
+      setAuthError(error.message)
+    } finally {
+      setIsLoggingIn(false)
+    }
+
   }
 
   const logout = () => {
@@ -143,11 +159,18 @@ function App() {
   }, [currentUser])
 
   useEffect(() => {
+    
+    if (!currentUser) {
+      return
+    }
+
     const token = localStorage.getItem("token")
   
     setMessages([])
+    setIsLoadingMessages(true)
   
     if (!token) {
+      setIsLoadingMessages(false)
       return
     }
   
@@ -172,7 +195,10 @@ function App() {
         console.error(error)
         setMessages([])
       })
-  }, [room])
+      .finally(() => {
+        setIsLoadingMessages(false)
+      })
+  }, [room, currentUser])
 
   useEffect(() => {
     socket.on("receive_message", (data) => {
@@ -237,19 +263,22 @@ function App() {
 
   useEffect(() => {
     socket.on("typing", (data) => {
-      console.log("RECEIVED TYPING:", data)
       setTypingUsers((prev) => {
+        console.log("BEFORE ADD:", prev)
         if (prev.includes(data.username)) {
           return prev
         }
+
+        const updated = [...prev, data.username]
+        console.log("AFTER ADD:", updated)
   
         return [...prev, data.username]
       })
     })
     
     socket.on("stop_typing", (data) => {
-      console.log("RECEIVED STOP TYPING:", data)
       setTypingUsers((prev) => {
+        console.log("AFTER REMOVE:", prev.filter((user) => user !== data.username))
         return prev.filter((user) => user !== data.username)
       })
     })
@@ -312,10 +341,17 @@ function App() {
             onChange={(e) => setPassword(e.target.value)}
             className="mb-4 w-full rounded-lg border p-3"
           />
+
+          {authError && (
+            <p className="text-sm text-red-500">
+              {authError}
+            </p>
+          )}
   
           <div className="flex gap-3">
             <button
               onClick={login}
+              disabled={isLoggingIn}
               className="flex-1 rounded-lg bg-blue-600 p-3 text-white"
             >
               Login
@@ -335,11 +371,11 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="flex min-h-screen w-full">
+    <div className="h-screen overflow-hidden bg-slate-100">
+      <div className="flex h-full w-full">
   
         {/* Sidebar */}
-        <aside className="w-64 bg-slate-900 p-5 text-white">
+        <aside className="h-full w-64 bg-slate-900 p-5 text-white">
           <h1 className="mb-8 text-2xl font-bold">
             ChatFlow
           </h1>
@@ -409,7 +445,7 @@ function App() {
         </aside>
   
         {/* Main chat area */}
-        <main className="flex flex-1 flex-col bg-white">
+        <main className="flex h-full min-w-0 flex-1 flex-col bg-white">
   
           {/* Header */}
           <header className="border-b border-slate-200 px-6 py-4">
@@ -424,7 +460,11 @@ function App() {
   
           {/* Messages */}
           <section className="flex-1 space-y-4 overflow-y-auto p-6">
-            {Array.isArray(messages) && messages.length > 0 ? (
+            { isLoadingMessages ? (
+              <p className="text-center text-slate-400">
+                Loading messages...
+              </p>
+              ) : Array.isArray(messages) && messages.length > 0 ? (
               messages.map((msg, index) => {
                 const isOwnMessage = (currentUser === msg.username)
 

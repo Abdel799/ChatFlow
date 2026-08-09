@@ -30,9 +30,22 @@ function App() {
 
   const [authError, setAuthError] = useState("")
   const [authSuccess, setAuthSuccess] = useState("")
+
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false)
 
   const register = async () => {
+
+    setAuthError("")
+    setAuthSuccess("")
+
+    setIsRegistering(true)
+
+    if (!username.trim() || !password.trim()) {
+      setAuthError("Please enter a username and password.")
+      setIsRegistering(false)
+      return
+    }
 
     try {
       const res = await fetch(`${API}/auth/register`, {
@@ -52,20 +65,29 @@ function App() {
         throw new Error(data.message)
       }
     
-      console.log(data)
+      {/*console.log(data)*/}
       setAuthSuccess("Registered successfully, proceed to login.")
       setUsername("")
       setPassword("")
-    } catch{
+    } catch (error) {
       setAuthError(error.message)
+    } finally {
+      setIsRegistering(false)
     }
 
   }
 
   const login = async () => {
 
+    setAuthSuccess("")
     setAuthError("")
     setIsLoggingIn(true)
+
+    if (!username.trim() || !password.trim()) {
+      setAuthError("Please enter a username and password.")
+      setIsLoggingIn(false)
+      return
+    }
     
     try {
       const res = await fetch(`${API}/auth/login`, {
@@ -80,7 +102,7 @@ function App() {
       })
     
       const data = await res.json()
-      console.log(data)
+      {/*console.log(data)*/}
 
       if (!res.ok) {
         throw new Error(data.message)
@@ -145,12 +167,12 @@ function App() {
     }
   
     const handleOnlineUsers = (users) => {
-      console.log("Received online users:", users)
+      {/*console.log("Received online users:", users)*/}
       setOnlineUsers(users)
     }
   
     const announceUser = () => {
-      console.log("Announcing online user:", currentUser)
+      {/*console.log("Announcing online user:", currentUser)*/}
       socket.emit("user_online", currentUser)
     }
   
@@ -274,13 +296,13 @@ function App() {
   useEffect(() => {
     socket.on("typing", (data) => {
       setTypingUsers((prev) => {
-        console.log("BEFORE ADD:", prev)
+        {/*console.log("BEFORE ADD:", prev)*/}
         if (prev.includes(data.username)) {
           return prev
         }
 
         const updated = [...prev, data.username]
-        console.log("AFTER ADD:", updated)
+        {/*console.log("AFTER ADD:", updated)*/}
   
         return [...prev, data.username]
       })
@@ -288,7 +310,7 @@ function App() {
     
     socket.on("stop_typing", (data) => {
       setTypingUsers((prev) => {
-        console.log("AFTER REMOVE:", prev.filter((user) => user !== data.username))
+        {/*console.log("AFTER REMOVE:", prev.filter((user) => user !== data.username))*/}
         return prev.filter((user) => user !== data.username)
       })
     })
@@ -311,7 +333,7 @@ function App() {
   const handleTyping = (e) => {
     setMessage(e.target.value)
 
-    console.log("EMITTING TYPING:", currentUser, room)
+    {/*console.log("EMITTING TYPING:", currentUser, room)*/}
 
     socket.emit("typing", {
       username: currentUser,
@@ -370,14 +392,14 @@ function App() {
               disabled={isLoggingIn}
               className="flex-1 rounded-lg bg-blue-600 p-3 text-white"
             >
-              Login
+              {isLoggingIn ? "Logging In..." : "Login"}
             </button>
   
             <button
               onClick={register}
               className="flex-1 rounded-lg bg-slate-700 p-3 text-white"
             >
-              Register
+              {isRegistering ? "Registering..." : "Register"}
             </button>
           </div>
   

@@ -52,9 +52,9 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id)
 
   socket.on("user_online", (username) => {
-    console.log("Received user_online:", username)
+    {/*console.log("Received user_online:", username)*/}
     onlineUsers[socket.id] = username
-    console.log("Current online users:", onlineUsers)
+    {/*console.log("Current online users:", onlineUsers)*/}
     io.emit("online_users", Object.values(onlineUsers))
   })
 
@@ -88,13 +88,13 @@ io.on("connection", (socket) => {
   })
 
   socket.on("typing", (data) => {
-    console.log("SERVER RECEIVED TYPING:", data)
+    {/*console.log("SERVER RECEIVED TYPING:", data)*/}
   
     socket.to(data.room).emit("typing", data)
   })
   
   socket.on("stop_typing", (data) => {
-    console.log("SERVER RECEIVED STOP TYPING:", data)
+    {/*console.log("SERVER RECEIVED STOP TYPING:", data)*/}
   
     socket.to(data.room).emit("stop_typing", data)
   })

@@ -86,15 +86,15 @@ MongoDB Atlas stores user accounts and message history, allowing conversations t
 
 ### Authentication
 
-![ChatFlow authentication screen](ADD_SCREENSHOT_PATH)
+![ChatFlow authentication screen](Screenshots/Login.png)
 
 ### Real-Time Messaging
 
-![ChatFlow real-time messaging](ADD_SCREENSHOT_PATH)
+![ChatFlow real-time messaging](Screenshots/Messages.png)
 
 ### Online Users & Typing Indicators
 
-![ChatFlow online users and typing indicators](ADD_SCREENSHOT_PATH)
+![ChatFlow online users and typing indicators](Screenshots/Typing.png)
 
 ## 🔐 Authentication & Security
 

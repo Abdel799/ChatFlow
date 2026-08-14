@@ -4,7 +4,7 @@ ChatFlow is a full-stack real-time messaging application that allows users to co
 
 The project was built to explore full-stack development, real-time client-server communication, authentication, and production deployment.
 
-**Live Demo:** [ChatFlow](YOUR_VERCEL_LINK)
+**Live Demo:** [ChatFlow](https://chat-flow-opal.vercel.app/)
 
 ## ✨ Features
 

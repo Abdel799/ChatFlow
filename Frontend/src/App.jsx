@@ -34,6 +34,8 @@ function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
   const register = async () => {
 
     setAuthError("")
@@ -411,13 +413,36 @@ function App() {
 
   return (
     <div className="h-screen overflow-hidden bg-slate-100">
-      <div className="flex h-full w-full">
+      <div className="relative flex h-full w-full">
   
         {/* Sidebar */}
-        <aside className="h-full w-64 bg-slate-900 p-5 text-white">
-          <h1 className="mb-8 text-2xl font-bold">
-            ChatFlow
-          </h1>
+
+        {isSidebarOpen && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          />
+        )}
+
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 h-full w-64 bg-slate-900 p-5 text-white
+            transition-transform duration-300
+            md:static md:translate-x-0
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
+        >
+          <div className="mb-8 flex items-center justify-between">
+              <h1 className="text-2xl font-bold">
+                Chat Flow
+              </h1>
+
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-2xl text-slate-300 md:hidden"
+              >
+                ×
+              </button>
+          </div>
   
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
             Rooms
@@ -427,7 +452,10 @@ function App() {
             {["General", "School", "Career", "Gaming", "Random"].map((roomName) => (
               <button
                 key={roomName}
-                onClick={() => setRoom(roomName)}
+                onClick={() => {
+                  setRoom(roomName)
+                  setIsSidebarOpen(false)
+                }}
                 className={`w-full rounded-lg px-4 py-2 text-left transition ${
                   room === roomName
                     ? "bg-blue-600 text-white"
@@ -487,18 +515,31 @@ function App() {
         <main className="flex h-full min-w-0 flex-1 flex-col bg-white">
   
           {/* Header */}
-          <header className="border-b border-slate-200 px-6 py-4">
-            <h2 className="text-xl font-bold text-slate-900">
-              # {room}
-            </h2>
-  
-            <p className="text-sm text-slate-500">
-              Welcome to the {room} room
-            </p>
-          </header>
+          <header className="border-b border-slate-200 px-4 py-4 sm:px-6">
+              <div className="flex items-center gap-3">
+
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="text-2xl text-slate-700 md:hidden"
+                >
+                  ☰
+                </button>
+
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    # {room}
+                  </h2>
+
+                  <p className="text-sm text-slate-500">
+                    Welcome to the {room} room
+                  </p>
+                </div>
+
+              </div>
+            </header>
   
           {/* Messages */}
-          <section className="flex-1 space-y-4 overflow-y-auto p-6">
+          <section className="flex-1 space-y-4 overflow-y-auto p-3 sm:p-6">
             { isLoadingMessages ? (
               <p className="text-center text-slate-400">
                 Loading messages...
@@ -513,7 +554,11 @@ function App() {
                     className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                   >
 
-                    <div className={`max-w-3/4 rounded-xl ${isOwnMessage ? "bg-blue-500" : "bg-slate-200"} p-4`}>
+                    <div
+                        className={`max-w-[85%] rounded-xl ${
+                          isOwnMessage ? "bg-blue-500" : "bg-slate-200"
+                        } p-4 sm:max-w-3/4`}
+                      >
                       <div className="mb-1 flex items-center justify-between gap-4">
                         {!isOwnMessage && (
                           <strong className="text-slate-900">
@@ -521,7 +566,7 @@ function App() {
                           </strong>
                         )}
                         
-                        <span className="text-xs text-black">
+                        <span className="whitespace-nowrap text-xs text-black">
                           {msg.createdAt
                             ? new Date(msg.createdAt).toLocaleTimeString([], {
                                 hour: "2-digit",
@@ -560,7 +605,7 @@ function App() {
           {/* Message input */}
           {currentUser && (
             <div className="border-t border-slate-200 p-4">
-              <div className="flex gap-3">
+              <div className="flex min-w-0 gap-2 sm:gap-3">
                 <input
                   value={message}
                   onChange={handleTyping}
@@ -570,12 +615,12 @@ function App() {
                     }
                   }}
                   placeholder={`Message #${room}`}
-                  className="flex-1 rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-500 sm:px-4"
                 />
   
                 <button
                   onClick={sendMessage}
-                  className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+                  className="shrink-0 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 sm:px-6"
                 >
                   Send
                 </button>
